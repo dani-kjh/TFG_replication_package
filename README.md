@@ -7,7 +7,6 @@
 The directory structure of the project looks like this:
 
 ```
-├── LICENSE
 ├── README.md <- The top-level README for developers using this project.
 ├── testing
 │ ├── main.py <- Script to perform inference on deployed providers
