@@ -1,5 +1,12 @@
 # TFG_replication_package
 
+### The resulting directory structure
+
+---
+
+The directory structure of the project looks like this:
+
+```
 ├── LICENSE
 ├── README.md <- The top-level README for developers using this project.
 ├── testing
@@ -15,11 +22,13 @@
 │ └── figures <- Generated graphics and figures to be used in reporting
 │
 ├── src <- Source code for use in this project.
-│ ├── modules <- Python file containing the reference to the model  
+│ ├── modules <- Python file containing the reference to the model
 │ │ └── inference.py
 │ │
 │ ├── app.py <- Python file containing the declaration of the API.
 │ │
 │ ├── requirements.txt <- The requirements file for reproducing the application environment
-│ │  
+│ │
 │ └── Dockerfile <- Dockerfile used to generate the image deployed in cloud providers
+
+```
