@@ -26,7 +26,6 @@ class MakeApiCall:
             with open(os.path.join(output_path, "API_results.csv"), "wb") as file:
                 file.write(response.content)
 
-            print(latencies)
             # Save latencies into csv
             numpy.savetxt(os.path.join(output_path, "latency_results.csv"), latencies, delimiter=",", header="latency")
         else:
@@ -50,15 +49,23 @@ class MakeApiCall:
 
         return requests_latency
 
-    def __init__(self, api, tag):
+    def __init__(self):
 
         sentences_to_post = []
         with open("sentences.txt") as my_file:
             sentences_to_post = my_file.read().splitlines()
 
-        latencies = self.make_requests(api, sentences_to_post)
-        self.get_results(api, tag, latencies)
+        cloud_providers = [
+            ["https://azurehuggingfacetranslator.azurewebsites.net", "azure"],
+            ["https://docker-fastapi-translator.herokuapp.com", "heroku"],
+            ["https://awsfastapitext-production.up.railway.app", "railway"],
+            ["", "aws"],
+        ]
+        for provider in cloud_providers:
+            print("Requesting provider: " + provider[1])
+            latencies = self.make_requests(provider[0], sentences_to_post)
+            self.get_results(provider[0], provider[1], latencies)
 
 
 if __name__ == "__main__":
-    api_call = MakeApiCall("https://azurehuggingfacetranslator.azurewebsites.net/", "azure")
+    api_call = MakeApiCall()
