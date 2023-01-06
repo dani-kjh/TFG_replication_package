@@ -5,20 +5,24 @@ import os
 import sys
 import numpy
 
-RESULTS_PATH = "../results"
+RESULTS_PATH = r"C:\Users\Dani\Documents\TFG_replication_package\results"
 
 
 class MakeApiCall:
     def formatted_print(self, obj):
         text = json.dumps(obj, sort_keys=True, indent=4)
         print(text)
+        sys.stdout.flush()
+
 
     def get_results(self, api, tag, latencies):
         url = api + "/results"
         response = requests.get(url)
-        current_datetime = datetime.now().strftime("%Y-%m-%d;%H:%M:%S")
+        current_datetime = datetime.now().strftime("%Y-%m-%d-%H.%M.%S")
         if response.status_code == 200:
             print("sucessfully fetched the data")
+            sys.stdout.flush()
+
             output_path = os.path.join(RESULTS_PATH, tag, current_datetime)
             if not (os.path.isdir(output_path)):
                 os.makedirs(output_path)
@@ -30,6 +34,8 @@ class MakeApiCall:
             numpy.savetxt(os.path.join(output_path, "latency_results.csv"), latencies, delimiter=",", header="latency")
         else:
             print(f"Hello person, there's a {response.status_code} error with your request")
+            sys.stdout.flush()
+
 
     def make_requests(self, api, sentences):
         url = api + "/invocations"
@@ -40,11 +46,16 @@ class MakeApiCall:
             response = requests.post(url, json=myobj)
             if response.status_code == 200:
                 print("sucessfully fetched the data with parameters provided")
+                sys.stdout.flush()
                 self.formatted_print(response.json())
                 requests_latency.append(response.elapsed.total_seconds())
                 print("Latency in seconds of the request[" + str(it) + "]: " + str(response.elapsed.total_seconds()))
+                sys.stdout.flush()
+
             else:
                 print(f"Hello person, there's a {response.status_code} error with your request")
+                sys.stdout.flush()
+
             it = it + 1
 
         return requests_latency
@@ -57,12 +68,13 @@ class MakeApiCall:
 
         cloud_providers = [
             ["https://azurehuggingfacetranslator.azurewebsites.net", "azure"],
+            ["http://15.188.62.27", "aws"],
             ["https://docker-fastapi-translator.herokuapp.com", "heroku"],
-            ["https://awsfastapitext-production.up.railway.app", "railway"],
-            ["", "aws"],
+            ["https://awsfastapitext-production.up.railway.app", "railway"]
         ]
         for provider in cloud_providers:
             print("Requesting provider: " + provider[1])
+            sys.stdout.flush()
             latencies = self.make_requests(provider[0], sentences_to_post)
             self.get_results(provider[0], provider[1], latencies)
 
