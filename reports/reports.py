@@ -1,11 +1,11 @@
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
-import statistics
 from tabulate import tabulate
-import scipy
+from scipy import stats
 from scipy.stats import shapiro
-import numpy as np
+import scikit_posthocs as sp
+import cliffs_delta as cd
 
 
 def generate_summary(data):
@@ -78,7 +78,6 @@ def gen_normality_results(providers):
         ]
     ]
     for provider in providers:
-        print(provider.emissions)
         shapiro_test = shapiro(provider.emissions)
         new_row = [
             provider.cloud_provider[0],
@@ -92,7 +91,38 @@ def gen_normality_results(providers):
 
 
 def test_significance(providers):
-    dqw
+    groups = [providers[0].emissions, providers[1].emissions, providers[2].emissions, providers[3].emissions]
+
+    kruskal = stats.kruskal(
+        providers[0].emissions, providers[1].emissions, providers[2].emissions, providers[3].emissions
+    )
+
+    dunn = sp.posthoc_dunn(groups, p_adjust="bonferroni")
+    with open("report_figures/significance/dunn.html", "w") as f:
+        f.write(tabulate(dunn, showindex=False, headers=["aws", "azure", "heroku", "railway"], tablefmt="html"))
+    cliff = cd.cliffs_delta(providers[2].emissions, providers[3].emissions)
+    print(cliff)
+    cliff_test = [
+        ["aws-azure", cd.cliffs_delta(providers[0].emissions, providers[1].emissions)],
+        ["aws-heroku", cd.cliffs_delta(providers[0].emissions, providers[2].emissions)],
+        ["aws-railway", cd.cliffs_delta(providers[0].emissions, providers[3].emissions)],
+        ["azure-heroku", cd.cliffs_delta(providers[1].emissions, providers[2].emissions)],
+        ["azure-railway", cd.cliffs_delta(providers[1].emissions, providers[3].emissions)],
+        ["heroku-railway", cd.cliffs_delta(providers[2].emissions, providers[3].emissions)],
+    ]
+    with open("report_figures/significance/cliff.html", "w") as f:
+        f.write(
+            tabulate(
+                cliff_test,
+                showindex=False,
+                headers=[
+                    "",
+                    "test_statistic",
+                    "tag",
+                ],
+                tablefmt="html",
+            )
+        )
 
 
 azure = "../results/azure/2023-01-06-13.01.49/API_results.csv"
@@ -112,12 +142,3 @@ results = [azure, aws, heroku, railway]
 gen_normality_results(results)
 
 test_significance(results)
-
-"""
-print(prov.emissions)
-
-
-
-# print(statistics.median(aws.emissions))
-# print(statistics.mean(aws.emissions))
-"""

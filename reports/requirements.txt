@@ -1,6 +1,7 @@
 seaborn
 matplotlib
 pandas
-statistics
 scipy
-statsmodels
+tabulate
+scikit_posthocs
+cliffs_delta
