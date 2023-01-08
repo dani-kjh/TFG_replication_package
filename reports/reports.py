@@ -63,29 +63,28 @@ def gen_normality_results(providers):
     sns.set(style="darkgrid")
     my_pal = {"aws": "skyblue", "azure": "olive", "heroku": "gold", "railway": "teal"}
     df = pd.concat(providers, ignore_index=True)
-    violin = sns.violinplot(x="cloud_provider", y="energy_consumed", data=df, scale="width", palette=my_pal)
+    violin = sns.violinplot(x="cloud_provider", y="emissions", data=df, scale="width", palette=my_pal)
     figure = violin.get_figure()
-    figure.set_size_inches(14, 14)
+    figure.set_size_inches(10, 10)
+    figure.tight_layout()
     figure.savefig("report_figures/normality/violin_comb.png")
 
     fig, axs = plt.subplots(2, 2, figsize=(16, 12))
 
-    sns.histplot(data=aws, x="emissions", kde=True, color="skyblue", ax=axs[0, 0]).set(title="Aws")
-    sns.histplot(data=azure, x="emissions", kde=True, color="olive", ax=axs[0, 1]).set(title="Azure")
-    sns.histplot(data=heroku, x="emissions", kde=True, color="gold", ax=axs[1, 0]).set(title="Heroku")
-    sns.histplot(data=railway, x="emissions", kde=True, color="teal", ax=axs[1, 1]).set(title="Railway")
+    sns.histplot(data=aws, x="emissions", kde=True, color="skyblue", bins=12, ax=axs[0, 0]).set(title="Aws")
+    sns.histplot(data=azure, x="emissions", kde=True, color="olive", bins=12, ax=axs[0, 1]).set(title="Azure")
+    sns.histplot(data=heroku, x="emissions", kde=True, color="gold", bins=12, ax=axs[1, 0]).set(title="Heroku")
+    sns.histplot(data=railway, x="emissions", kde=True, color="teal", bins=12, ax=axs[1, 1]).set(title="Railway")
 
     fig.tight_layout()
     fig.savefig("report_figures/normality/histograms.png")
 
     sns.set(style="darkgrid")
-    fig2, axs2 = plt.subplots(2, 2, figsize=(16, 12))
-
+    fig2, axs2 = plt.subplots(2, 2, figsize=(10, 10))
     sns.violinplot(x="cloud_provider", y="emissions", color="skyblue", data=aws, scale="width", ax=axs2[0, 0])
     sns.violinplot(x="cloud_provider", y="emissions", color="olive", data=azure, scale="width", ax=axs2[0, 1])
     sns.violinplot(x="cloud_provider", y="emissions", color="gold", data=heroku, scale="width", ax=axs2[1, 0])
     sns.violinplot(x="cloud_provider", y="emissions", color="teal", data=railway, scale="width", ax=axs2[1, 1])
-    fig2.tight_layout()
 
     fig2.savefig("report_figures/normality/violinplots.png")
 
@@ -117,17 +116,18 @@ def test_significance(providers):
     )
 
     dunn = sp.posthoc_dunn(groups, p_adjust="bonferroni")
+    print(dunn)
     with open("report_figures/significance/dunn.html", "w") as f:
         f.write(tabulate(dunn, showindex=False, headers=["aws", "azure", "heroku", "railway"], tablefmt="html"))
     cliff = cd.cliffs_delta(providers[2].emissions, providers[3].emissions)
     print(cliff)
     cliff_test = [
-        ["aws-azure", cd.cliffs_delta(providers[0].emissions, providers[1].emissions)],
-        ["aws-heroku", cd.cliffs_delta(providers[0].emissions, providers[2].emissions)],
-        ["aws-railway", cd.cliffs_delta(providers[0].emissions, providers[3].emissions)],
-        ["azure-heroku", cd.cliffs_delta(providers[1].emissions, providers[2].emissions)],
-        ["azure-railway", cd.cliffs_delta(providers[1].emissions, providers[3].emissions)],
-        ["heroku-railway", cd.cliffs_delta(providers[2].emissions, providers[3].emissions)],
+        ["aws-azure", cd.cliffs_delta(providers[0].emissions, providers[1].emissions)[0]],
+        ["aws-heroku", cd.cliffs_delta(providers[0].emissions, providers[2].emissions)[0]],
+        ["aws-railway", cd.cliffs_delta(providers[0].emissions, providers[3].emissions)[0]],
+        ["azure-heroku", cd.cliffs_delta(providers[1].emissions, providers[2].emissions)[0]],
+        ["azure-railway", cd.cliffs_delta(providers[1].emissions, providers[3].emissions)[0]],
+        ["heroku-railway", cd.cliffs_delta(providers[2].emissions, providers[3].emissions)[0]],
     ]
     with open("report_figures/significance/cliff.html", "w") as f:
         f.write(
@@ -170,7 +170,7 @@ railway_lat = pd.read_csv(railway_lat)
 results = [aws, azure, heroku, railway]
 results_lat = {"aws": aws_lat, "azure": azure_lat, "heroku": heroku_lat, "railway": railway_lat}
 
-generate_summary(results, results_lat)
+# generate_summary(results, results_lat)
 gen_normality_results(results)
 
 test_significance(results)
